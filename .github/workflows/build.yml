@@ -1,0 +1,49 @@
+name: Build OBTrack
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build-win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OBTrack-Windows-x64
+          path: dist/*.exe
+
+  build-windows-arm:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build-win-arm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OBTrack-Windows-ARM
+          path: dist/*.exe
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build-mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OBTrack-Mac
+          path: dist/*.dmg
