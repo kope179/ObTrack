@@ -1,13 +1,14 @@
 {
   "name": "obtrack",
   "version": "1.0.0",
+  "description": "Trading journal",
+  "author": "OBTrack",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build-win": "electron-builder --win --x64",
     "build-win-arm": "electron-builder --win --arm64",
-    "build-mac": "electron-builder --mac",
-    "build-all": "electron-builder --win --x64 && electron-builder --mac"
+    "build-mac": "electron-builder --mac"
   },
   "build": {
     "appId": "com.obtrack.app",
@@ -23,7 +24,6 @@
     "nsis": {
       "oneClick": true,
       "createDesktopShortcut": true,
-      "AllowToChangeInstallationDirectory": false,
       "createStartMenuShortcut": true,
       "shortcutName": "OBTrack"
     }
