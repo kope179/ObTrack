@@ -8,13 +8,15 @@ on:
 jobs:
   build-windows-x64:
     runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm install
-      - run: npm run build-win
+      - run: npm run build-win -- --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: OBTrack-Windows-x64
@@ -22,13 +24,15 @@ jobs:
 
   build-windows-arm:
     runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm install
-      - run: npm run build-win-arm
+      - run: npm run build-win-arm -- --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: OBTrack-Windows-ARM
@@ -36,13 +40,15 @@ jobs:
 
   build-mac:
     runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm install
-      - run: npm run build-mac
+      - run: npm run build-mac -- --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: OBTrack-Mac
