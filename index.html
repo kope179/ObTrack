@@ -51,7 +51,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 /* STAT CARDS */
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
 .sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:15px 17px}
-.sc-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;white-space:nowrap}
+.sc-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
 .sc-val{font-size:23px;font-weight:600;font-family:var(--mono);letter-spacing:-1px}
 .sc-sub{font-size:11px;color:var(--text3);margin-top:3px}
 .green{color:var(--green)}.red{color:var(--red)}.amber{color:var(--amber)}.blue{color:var(--blue)}.gold{color:var(--gold)}
@@ -582,26 +582,36 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
           <div class="fdiv"></div>
           <div class="fsect" style="margin-bottom:6px">Grade thresholds — how many confluences = what grade?</div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Set the minimum number of confluences required for each grade. Trades with fewer go to the grade below.</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px">
             <div class="fg">
-              <label class="fl" style="color:var(--gold)">A++ min confluences</label>
-              <input type="number" id="thr-app" value="4" min="1" max="20" style="text-align:center">
-              <div style="font-size:10px;color:var(--text3);margin-top:4px">+ setup + 2 groups</div>
+              <label class="fl" style="color:var(--gold)">A++ (min confluences)</label>
+              <select id="thr-app">
+                <option value="3">3+</option>
+                <option value="4" selected>4+ (default)</option>
+                <option value="5">5+</option>
+                <option value="6">6+</option>
+              </select>
+              <div style="font-size:10px;color:var(--text3);margin-top:4px">+ setup selected + 2 different groups</div>
             </div>
             <div class="fg">
-              <label class="fl" style="color:var(--green)">A+ min confluences</label>
-              <input type="number" id="thr-ap" value="3" min="1" max="20" style="text-align:center">
-              <div style="font-size:10px;color:var(--text3);margin-top:4px">Minimum for eval</div>
+              <label class="fl" style="color:var(--green)">A+ (min confluences)</label>
+              <select id="thr-ap">
+                <option value="2">2+</option>
+                <option value="3" selected>3+ (default)</option>
+                <option value="4">4+</option>
+                <option value="5">5+</option>
+              </select>
+              <div style="font-size:10px;color:var(--text3);margin-top:4px">Your minimum to take on eval</div>
             </div>
             <div class="fg">
-              <label class="fl" style="color:var(--blue)">A min confluences</label>
-              <input type="number" id="thr-a" value="2" min="1" max="20" style="text-align:center">
-              <div style="font-size:10px;color:var(--text3);margin-top:4px">Below this = B</div>
-            </div>
-            <div class="fg">
-              <label class="fl" style="color:var(--text2)">B min confluences</label>
-              <input type="number" id="thr-b" value="0" min="0" max="20" style="text-align:center">
-              <div style="font-size:10px;color:var(--text3);margin-top:4px">Below this = ungraded</div>
+              <label class="fl" style="color:var(--blue)">A (min confluences)</label>
+              <select id="thr-a">
+                <option value="1">1+</option>
+                <option value="2" selected>2+ (default)</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+              </select>
+              <div style="font-size:10px;color:var(--text3);margin-top:4px">Below this = B setup</div>
             </div>
           </div>
           <div class="fdiv"></div>
@@ -693,13 +703,11 @@ function getGrade(conf, setupArr, thresholds){
   const tApp = parseInt(t.app)||4;
   const tAp  = parseInt(t.ap)||3;
   const tA   = parseInt(t.a)||2;
-  const tB   = parseInt(t.b)||0;
   const uniqueFirstWords = new Set((conf||[]).map(c=>c.split(' ')[0]));
   const isApp = setupArr && setupArr.length > 0 && n >= tApp && uniqueFirstWords.size >= 2;
   if(isApp) return 'A++';
   if(n>=tAp) return 'A+';
   if(n>=tA)  return 'A';
-  if(n>=tB)  return 'B';
   return 'B';
 }
 function getActiveThresholds(){
@@ -817,7 +825,7 @@ function renderStrategyList(){
         <div style="font-size:11px"><span style="color:var(--gold);font-weight:600">A++</span> <span style="color:var(--text3)">${(s.thresholds&&s.thresholds.app)||4}+ conf</span></div>
         <div style="font-size:11px"><span style="color:var(--green);font-weight:600">A+</span> <span style="color:var(--text3)">${(s.thresholds&&s.thresholds.ap)||3}+ conf</span></div>
         <div style="font-size:11px"><span style="color:var(--blue);font-weight:600">A</span> <span style="color:var(--text3)">${(s.thresholds&&s.thresholds.a)||2}+ conf</span></div>
-        <div style="font-size:11px"><span style="color:var(--text3);font-weight:600">B</span> <span style="color:var(--text3)">${(s.thresholds&&s.thresholds.b)||0}+ conf</span></div>
+        <div style="font-size:11px"><span style="color:var(--text3);font-weight:600">B</span> <span style="color:var(--text3)">below A</span></div>
       </div>
     </div>`;
   }).join('');
@@ -883,7 +891,6 @@ function editStrategy(id){
   document.getElementById('thr-app').value = thr.app||4;
   document.getElementById('thr-ap').value  = thr.ap||3;
   document.getElementById('thr-a').value   = thr.a||2;
-  document.getElementById('thr-b').value   = thr.b||0;
   window.scrollTo(0,0);
   document.getElementById('strat-name').focus();
 }
@@ -902,7 +909,6 @@ function saveStrategy(){
   const thrApp = parseInt(document.getElementById('thr-app').value)||4;
   const thrAp  = parseInt(document.getElementById('thr-ap').value)||3;
   const thrA   = parseInt(document.getElementById('thr-a').value)||2;
-  const thrB   = parseInt(document.getElementById('thr-b').value)||0;
   if(thrA >= thrAp){ alert('A threshold must be lower than A+ threshold'); return; }
   if(thrAp >= thrApp){ alert('A+ threshold must be lower than A++ threshold'); return; }
   const obj = {
@@ -911,7 +917,7 @@ function saveStrategy(){
     desc: document.getElementById('strat-desc').value.trim(),
     setups: [...stratSetups],
     groups: stratGroups.filter(g=>g.items.length>0).map(g=>({name:g.name||'Other',items:[...g.items]})),
-    thresholds: {app:thrApp, ap:thrAp, a:thrA, b:thrB}
+    thresholds: {app:thrApp, ap:thrAp, a:thrA}
   };
   if(editStratId){
     const idx = strats.findIndex(x=>x.id===editStratId);
@@ -1078,7 +1084,7 @@ function clearForm(){
   const d=new Date(); const pad=n=>String(n).padStart(2,'0');
   document.getElementById('f-date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   document.querySelectorAll('.tag.sel').forEach(t=>t.classList.remove('sel'));
-  selSetup=null; selConf=[]; selEmotion=[]; editingTradeId=null;
+  selSetup=null; selConf=[]; selEmotion=[];
   document.getElementById('setup-chosen').textContent='No setup selected';
   clearScreenshot();
   updateConfUI();
@@ -1104,9 +1110,8 @@ function saveTrade(){
   const grade=getGrade(selConf,selSetup?[selSetup]:null,getActiveThresholds());
   const strats=loadStrategies();
   const activeStrat=strats.find(s=>s.id===activeStratId);
-  const tradeObj = {
-    id: editingTradeId || Date.now(),
-    date:tradeDate,type:tradeType,
+  trades.unshift({
+    id:Date.now(),date:tradeDate,type:tradeType,
     symbol:sym,dir,entry,exit,size,pnl,rr,grade,
     setup:selSetup,
     strategyId:activeStratId||null,
@@ -1115,14 +1120,7 @@ function saveTrade(){
     screenshot:currentScreenshot||null,
     notes:document.getElementById('f-notes').value,
     mistakes:document.getElementById('f-mistakes').value
-  };
-  if(editingTradeId){
-    const idx=trades.findIndex(t=>t.id===editingTradeId);
-    if(idx>-1) trades[idx]=tradeObj; else trades.unshift(tradeObj);
-    editingTradeId=null;
-  } else {
-    trades.unshift(tradeObj);
-  }
+  });
   persist();
   const msg=document.getElementById('fmsg'); msg.style.display='block'; setTimeout(()=>msg.style.display='none',2200);
   clearForm(); updateSbar();
@@ -1902,59 +1900,13 @@ function showDetail(id){
     <hr style="border:none;border-top:1px solid var(--border);margin:13px 0">
     <div class="df" style="margin-bottom:11px"><div class="dfl">Reasoning</div><div class="dfv" style="white-space:pre-wrap">${t.notes||'—'}</div></div>
     <div class="df" style="margin-bottom:18px"><div class="dfl">Mistakes / improvements</div><div class="dfv" style="white-space:pre-wrap">${t.mistakes||'—'}</div></div>
-    <div style="display:flex;gap:8px;margin-bottom:4px"><button class="btn-p" style="font-size:12px;padding:7px 16px" onclick="editTrade(${t.id})">Edit trade</button><button class="del-btn" onclick="delTrade(${t.id})">Delete trade</button></div>
+    <button class="del-btn" onclick="delTrade(${t.id})">Delete trade</button>
     ${t.screenshot?`<div style="margin-top:16px"><div class="dfl" style="margin-bottom:6px">Chart screenshot</div><img src="${t.screenshot}" style="width:100%;border-radius:var(--r);border:1px solid var(--border);cursor:zoom-in;max-height:280px;object-fit:cover" onclick="expandScreenshot(this.src)" title="Click to expand"></div>`:''}
   `;
   document.getElementById('moverlay').classList.add('open');
 }
-let editingTradeId = null;
-
-function editTrade(id){
-  const t = trades.find(x=>x.id===id); if(!t) return;
-  editingTradeId = id;
-  document.getElementById('moverlay').classList.remove('open');
-  go('log');
-  // Wait for form to render then fill it
-  setTimeout(()=>{
-    // strategy
-    if(t.strategyId){ activeStratId=t.strategyId; renderLogForm(); }
-    // trade type
-    setTradeType(t.type||'live');
-    // fields
-    const set=(id,v)=>{ const el=document.getElementById(id); if(el&&v!=null) el.value=v; };
-    set('f-sym', t.symbol);
-    set('f-entry', t.entry);
-    set('f-exit', t.exit);
-    set('f-size', t.size);
-    set('f-rr', t.rr);
-    set('f-pnl', t.pnl);
-    set('f-notes', t.notes);
-    set('f-mistakes', t.mistakes);
-    if(t.date){ const d=new Date(t.date); const pad=n=>String(n).padStart(2,'0'); document.getElementById('f-date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-    document.getElementById('f-dir').value = t.dir||'Long';
-    // setup
-    setTimeout(()=>{
-      if(t.setup){
-        document.querySelectorAll('#setup-tags .tag').forEach(el=>{ if(el.textContent===t.setup){ el.classList.add('sel'); selSetup=t.setup; document.getElementById('setup-chosen').textContent='Selected: '+t.setup; } });
-      }
-      // confluences
-      if(t.conf&&t.conf.length){
-        selConf=[...t.conf];
-        document.querySelectorAll('#conf-groups .tag').forEach(el=>{ if(t.conf.includes(el.textContent)) el.classList.add('sel'); });
-      }
-      // emotions
-      if(t.emotion&&t.emotion.length){
-        selEmotion=[...t.emotion];
-        document.querySelectorAll('#emotion-tags .tag').forEach(el=>{ if(t.emotion.includes(el.textContent)) el.classList.add('sel'); });
-      }
-      // screenshot
-      if(t.screenshot){ currentScreenshot=t.screenshot; document.getElementById('screenshot-preview').style.display='block'; document.getElementById('screenshot-img').src=t.screenshot; }
-      updateConfUI();
-    }, 50);
-  }, 50);
-}
-
 function delTrade(id){
+  if(!confirm('Delete this trade?')) return;
   trades=trades.filter(t=>t.id!=id);
   persist();
   document.getElementById('moverlay').classList.remove('open');
