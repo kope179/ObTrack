@@ -565,32 +565,17 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px">
             <div class="fg">
               <label class="fl" style="color:var(--gold)">A++ (min confluences)</label>
-              <select id="thr-app">
-                <option value="3">3+</option>
-                <option value="4" selected>4+ (default)</option>
-                <option value="5">5+</option>
-                <option value="6">6+</option>
-              </select>
+              <input type="number" id="thr-app" value="4" min="1" max="20" step="1" placeholder="e.g. 4">
               <div style="font-size:10px;color:var(--text3);margin-top:4px">+ setup selected + 2 different groups</div>
             </div>
             <div class="fg">
               <label class="fl" style="color:var(--green)">A+ (min confluences)</label>
-              <select id="thr-ap">
-                <option value="2">2+</option>
-                <option value="3" selected>3+ (default)</option>
-                <option value="4">4+</option>
-                <option value="5">5+</option>
-              </select>
+              <input type="number" id="thr-ap" value="3" min="1" max="20" step="1" placeholder="e.g. 3">
               <div style="font-size:10px;color:var(--text3);margin-top:4px">Your minimum to take on eval</div>
             </div>
             <div class="fg">
               <label class="fl" style="color:var(--blue)">A (min confluences)</label>
-              <select id="thr-a">
-                <option value="1">1+</option>
-                <option value="2" selected>2+ (default)</option>
-                <option value="3">3+</option>
-                <option value="4">4+</option>
-              </select>
+              <input type="number" id="thr-a" value="2" min="1" max="20" step="1" placeholder="e.g. 2">
               <div style="font-size:10px;color:var(--text3);margin-top:4px">Below this = B setup</div>
             </div>
           </div>
@@ -1847,11 +1832,197 @@ function showDetail(id){
     <hr style="border:none;border-top:1px solid var(--border);margin:13px 0">
     <div class="df" style="margin-bottom:11px"><div class="dfl">Reasoning</div><div class="dfv" style="white-space:pre-wrap">${t.notes||'—'}</div></div>
     <div class="df" style="margin-bottom:18px"><div class="dfl">Mistakes / improvements</div><div class="dfv" style="white-space:pre-wrap">${t.mistakes||'—'}</div></div>
-    <button class="del-btn" onclick="delTrade(${t.id})">Delete trade</button>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn-p" style="font-size:12px;padding:7px 16px" onclick="showEditTrade(${t.id})">Edit trade</button>
+      <button class="del-btn" onclick="delTrade(${t.id})">Delete trade</button>
+    </div>
     ${t.screenshot?`<div style="margin-top:16px"><div class="dfl" style="margin-bottom:6px">Chart screenshot</div><img src="${t.screenshot}" style="width:100%;border-radius:var(--r);border:1px solid var(--border);cursor:zoom-in;max-height:280px;object-fit:cover" onclick="expandScreenshot(this.src)" title="Click to expand"></div>`:''}
   `;
   document.getElementById('moverlay').classList.add('open');
 }
+
+function showEditTrade(id){
+  const t=trades.find(x=>x.id===id);if(!t)return;
+  const strats=loadStrategies();
+  const thr=getThresholdsForTrade(t)||{app:4,ap:3,a:2};
+
+  // Build setup options from the trade's strategy (or all strategies)
+  const strat=strats.find(s=>s.id===t.strategyId)||strats[0];
+  const setupOpts=(strat?strat.setups:[]).map(s=>
+    `<span class="tag gold-tag${t.setup===s?' sel':''}" onclick="editToggleSetup(this,'${s.replace(/'/g,"\\'")}',${id})" style="margin-bottom:4px">${s}</span>`
+  ).join('');
+
+  // Build confluence tags grouped
+  const confGroups=(strat&&strat.groups)?strat.groups:[];
+  const confHtml=confGroups.map(g=>`
+    <div style="margin-bottom:8px">
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">${g.name}</div>
+      <div class="tg">${g.items.map(item=>`<span class="tag${(t.conf||[]).includes(item)?' sel':''}" onclick="editToggleConf(this,${id})">${item}</span>`).join('')}</div>
+    </div>`).join('');
+
+  // Emotion tags
+  const allEm=[...GOOD_EM,...BAD_EM];
+  const emHtml=allEm.map(e=>{
+    const isBad=BAD_EM.includes(e);
+    const sel=(t.emotion||[]).includes(e);
+    return `<span class="tag${isBad?' red-tag':''}${sel?' sel':''}" onclick="editToggleEm(this,${id})">${e}</span>`;
+  }).join('');
+
+  // Date formatted for input
+  const dateVal=t.date?t.date.slice(0,10):'';
+
+  editTradeType = t.type||'live';
+  document.getElementById('m-title').innerHTML='Edit trade';
+  document.getElementById('m-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="fl">Trade type</div>
+      <div style="display:flex;gap:2px;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px">
+        <button id="et-type-live" onclick="setEditType('live')" style="padding:4px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font);background:${t.type!=='backtest'?'var(--green)':'transparent'};color:${t.type!=='backtest'?'#fff':'var(--text3)'};transition:all .15s">Live</button>
+        <button id="et-type-backtest" onclick="setEditType('backtest')" style="padding:4px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font);background:${t.type==='backtest'?'var(--amber)':'transparent'};color:${t.type==='backtest'?'#fff':'var(--text3)'};transition:all .15s">Backtest</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:12px">
+      <div class="fg"><label class="fl">Instrument</label><input type="text" id="et-sym" value="${t.symbol||''}" placeholder="ES, NQ…"></div>
+      <div class="fg"><label class="fl">Direction</label><select id="et-dir"><option${t.dir==='Long'?' selected':''}>Long</option><option${t.dir==='Short'?' selected':''}>Short</option></select></div>
+      <div class="fg"><label class="fl">Entry price</label><input type="number" id="et-entry" value="${t.entry??''}" step="0.25" placeholder="0.00"></div>
+      <div class="fg"><label class="fl">Exit price</label><input type="number" id="et-exit" value="${t.exit??''}" step="0.25" placeholder="0.00"></div>
+      <div class="fg"><label class="fl">Contracts</label><input type="number" id="et-size" value="${t.size||1}" min="1"></div>
+      <div class="fg"><label class="fl">R:R achieved</label><input type="number" id="et-rr" value="${t.rr||''}" step="0.1" placeholder="e.g. 2.5"></div>
+      <div class="fg" style="grid-column:1/-1">
+        <label class="fl">P&amp;L ($) — leave blank to auto-calculate from entry/exit</label>
+        <input type="number" id="et-pnl" value="${t.pnl??''}" placeholder="e.g. 250 or -120">
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">Clear this field and save to recalculate from entry/exit prices</div>
+      </div>
+      <div class="fg" style="grid-column:1/-1"><label class="fl">Date</label><input type="date" id="et-date" value="${dateVal}"></div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div class="fl" style="margin-bottom:6px">Entry setup</div>
+      <div class="tg" id="et-setups">${setupOpts}</div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <div style="margin-bottom:10px">
+      <div class="fl" style="margin-bottom:8px">Confluences <span id="et-grade-badge" class="grade g-b" style="margin-left:6px">—</span></div>
+      <div id="et-conf-groups">${confHtml||'<div style="color:var(--text3);font-size:12px">No confluence groups in this strategy</div>'}</div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <div style="margin-bottom:10px">
+      <div class="fl" style="margin-bottom:6px">Emotional state</div>
+      <div class="tg" id="et-emotions">${emHtml}</div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <div class="fg" style="margin-bottom:10px"><label class="fl">Reasoning</label><textarea id="et-notes" style="min-height:56px">${t.notes||''}</textarea></div>
+    <div class="fg" style="margin-bottom:14px"><label class="fl">Mistakes / improvements</label><textarea id="et-mistakes" style="min-height:56px">${t.mistakes||''}</textarea></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-p" style="font-size:12px;padding:7px 18px" onclick="saveEditTrade(${id})">Save changes</button>
+      <button class="btn-g" style="font-size:12px;padding:7px 14px" onclick="showDetail(${id})">Cancel</button>
+    </div>
+    <div id="et-msg" style="font-size:12px;color:var(--green);margin-top:8px;display:none">Saved ✓</div>
+  `;
+  // Update grade badge immediately based on current conf selection
+  updateEditGradeBadge(id);
+}
+
+let editTradeType = 'live';
+function setEditType(t){
+  editTradeType=t;
+  const liveBtn=document.getElementById('et-type-live');
+  const btBtn=document.getElementById('et-type-backtest');
+  if(liveBtn){ liveBtn.style.background=t==='live'?'var(--green)':'transparent'; liveBtn.style.color=t==='live'?'#fff':'var(--text3)'; }
+  if(btBtn){   btBtn.style.background=t==='backtest'?'var(--amber)':'transparent'; btBtn.style.color=t==='backtest'?'#fff':'var(--text3)'; }
+}
+
+function editToggleSetup(el,setup,id){
+  // Exclusive selection
+  document.querySelectorAll('#et-setups .tag').forEach(t=>t.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function editToggleConf(el,id){
+  el.classList.toggle('sel');
+  updateEditGradeBadge(id);
+}
+
+function editToggleEm(el,id){
+  el.classList.toggle('sel');
+}
+
+function updateEditGradeBadge(id){
+  const t=trades.find(x=>x.id===id);if(!t)return;
+  const selConfs=[...document.querySelectorAll('#et-conf-groups .tag.sel')].map(el=>el.textContent.trim());
+  const selSetupEl=document.querySelector('#et-setups .tag.sel');
+  const selSetup=selSetupEl?selSetupEl.textContent.trim():null;
+  const thr=getThresholdsForTrade(t)||{app:4,ap:3,a:2};
+  const g=getGrade(selConfs,selSetup?[selSetup]:null,thr);
+  const badge=document.getElementById('et-grade-badge');
+  if(badge){badge.textContent=g;badge.className='grade '+(g==='A++'?'g-app':g==='A+'?'g-ap':g==='A'?'g-a':'g-b');}
+}
+
+function saveEditTrade(id){
+  const idx=trades.findIndex(x=>x.id===id);if(idx===-1)return;
+  const t=trades[idx];
+
+  const sym=document.getElementById('et-sym').value.trim().toUpperCase();
+  if(!sym){alert('Enter an instrument symbol');return;}
+
+  const dir=document.getElementById('et-dir').value;
+
+  // Auto-calc P&L — same fix as log form
+  const entry=parseFloat(document.getElementById('et-entry').value);
+  const exit=parseFloat(document.getElementById('et-exit').value);
+  const size=parseFloat(document.getElementById('et-size').value)||1;
+  const rr=parseFloat(document.getElementById('et-rr').value)||null;
+  let pnl=parseFloat(document.getElementById('et-pnl').value);
+  if(isNaN(pnl)&&!isNaN(entry)&&!isNaN(exit)){
+    pnl=parseFloat(((dir==='Long'?exit-entry:entry-exit)*size).toFixed(2));
+  }
+  if(isNaN(pnl)) pnl=null;
+
+  const dateVal=document.getElementById('et-date').value;
+  const tradeDate=dateVal?new Date(dateVal+'T10:00:00').toISOString():t.date;
+
+  // Collect selected setup, confluences, emotions
+  const selSetupEl=document.querySelector('#et-setups .tag.sel');
+  const setup=selSetupEl?selSetupEl.textContent.trim():t.setup;
+  const conf=[...document.querySelectorAll('#et-conf-groups .tag.sel')].map(el=>el.textContent.trim());
+  const emotion=[...document.querySelectorAll('#et-emotions .tag.sel')].map(el=>el.textContent.trim());
+
+  const thr=getThresholdsForTrade(t)||{app:4,ap:3,a:2};
+  const grade=getGrade(conf,setup?[setup]:null,thr);
+
+  trades[idx]={
+    ...t,
+    symbol:sym,dir,
+    type:editTradeType,
+    entry:isNaN(entry)?null:entry,
+    exit:isNaN(exit)?null:exit,
+    size,pnl,rr,grade,
+    setup,conf,emotion,
+    date:tradeDate,
+    notes:document.getElementById('et-notes').value,
+    mistakes:document.getElementById('et-mistakes').value,
+  };
+
+  persist();
+  updateSbar();
+
+  // Re-render active screen
+  const active=document.querySelector('.screen.active');
+  if(active){
+    const name=active.id.replace('screen-','');
+    if(name==='dashboard') renderDash();
+    else if(name==='journal') renderJournal();
+    else if(name==='analytics') renderAnalytics();
+    else if(name==='stats') renderStats();
+    else if(name==='calendar') renderCal();
+    else if(name==='growth') renderGrowth();
+  }
+
+  // Show saved message, then switch back to detail view
+  const msg=document.getElementById('et-msg');
+  if(msg){msg.style.display='block';}
+  setTimeout(()=>showDetail(id),900);
+}
+
 function delTrade(id){
   if(!confirm('Delete this trade?')) return;
   trades=trades.filter(t=>t.id!=id);
