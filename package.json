@@ -13,6 +13,13 @@
   "build": {
     "appId": "com.obtrack.app",
     "productName": "OBTrack",
+    "asar": false,
+    "files": [
+      "main.js",
+      "trade-journal.html",
+      "icon.ico",
+      "icon.icns"
+    ],
     "win": {
       "target": "nsis",
       "icon": "icon.ico"
