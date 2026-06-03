@@ -8,9 +8,12 @@ function createWindow() {
     minWidth: 1000,
     minHeight: 600,
     title: 'OBTrack',
-    webPreferences: { nodeIntegration: false }
+    webPreferences: {
+      nodeIntegration: false,
+      webSecurity: false
+    }
   })
-  win.loadFile(path.join(__dirname, 'trade-journal.html'))
+  win.loadFile(path.join(__dirname, 'index.html'))
   win.setMenuBarVisibility(false)
 }
 
