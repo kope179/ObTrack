@@ -16,7 +16,7 @@
     "asar": false,
     "files": [
       "main.js",
-      "trade-journal.html",
+      "index.html",
       "icon.ico",
       "icon.icns"
     ],
