@@ -10,7 +10,7 @@ function createWindow() {
     title: 'OBTrack',
     webPreferences: { nodeIntegration: false }
   })
-  win.loadFile('trade-journal.html')
+  win.loadFile(path.join(__dirname, 'trade-journal.html'))
   win.setMenuBarVisibility(false)
 }
 
